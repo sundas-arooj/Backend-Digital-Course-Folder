@@ -58,7 +58,6 @@ mailRoutes.route('/getUsers').get((req,res)=>{
         var usersdetail=[];
         //console.log(date);
         users.forEach((user)=>{
-          console.log(user.IsAdmin);
           if(user.IsAdmin == false){
             user.Semester.forEach((semester)=>{
               if(semester.SemesterName == req.query.semester){
@@ -154,6 +153,23 @@ mailRoutes.route('/SemName').get((req, res) => {
     }
   });
 });
+
+mailRoutes.route('/SemName').post((req, res) => {
+  StartReg.findOneAndUpdate(
+    {}, 
+    { SemesterName: req.body.semName }, 
+    { upsert: true }, 
+    function (err, doc) {
+    if (err) {
+      console.log(err)
+      res.send(null);
+    }
+    else {
+      res.send(doc);
+    }
+  })
+});
+
 mailRoutes.route('/StartReg').post((req, res) => {
   console.log(req.body.IsStart);
   StartReg.findOneAndUpdate(
@@ -183,27 +199,36 @@ mailRoutes.route('/StartReg').get((req, res) => {
     }
   });
 });
+
 mailRoutes.route('/getFilesNo').post((req, res) => {
   var filesNumbr = [];
-
-  console.log(req.body);
-
-  req.body.forEach((dir, index) => {
-    //console.log(dir);
-    files = fs.readdirSync(dir);
-    filesNumbr.push(files.length);
-    console.log(dir + " : " + filesNumbr[index]);
-    // fs.readdir(dir, (err, files) => {
-    //   //console.log(files.length);
-    //   filesNumbr.push(files.length);
-    //   console.log(dir +" : "+filesNumbr[index]);
-    // });
+  var promise = new Promise((resolve, reject) => {
+    req.body.forEach((dir, index) => {
+      fs.access(dir, function(error) {
+        if (error) {
+          console.log("directory does not exist.")
+        } else {
+          files = fs.readdirSync(dir);
+          filesNumbr.push(files.length);
+          // console.log(dir + " : " + filesNumbr[index]);
+          // console.log(index === req.body.length-1)
+          if (index === req.body.length-1) resolve();
+        }
+      })         
+    });
+  })
+  promise.then(() => {
+    res.send(filesNumbr);
   });
-
-  console.log("filesNumber array " + filesNumbr);
-  res.send(filesNumbr);
+   
+  //   // fs.readdir(dir, (err, files) => {
+  //   //   //console.log(files.length);
+  //   //   filesNumbr.push(files.length);
+  //   //   console.log(dir +" : "+filesNumbr[index]);
+  //   // });
+  // });
+  
 });
-
 
 mailRoutes.route('/userCourses').get((req, res) => {
   let username = req.query.username;
@@ -739,7 +764,7 @@ mailRoutes.route('/registerCourse').post((req, res) => {
       });
     }
   });
-  console.log(req.body.RegCrs);
+  // console.log(req.body.RegCrs);
   // let regCrs = req.body.RegCrs;
 });
 

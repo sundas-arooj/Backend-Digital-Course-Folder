@@ -68,7 +68,7 @@ Details.pre('save', function (next) {
     if(!this.isModified('Password')) return next();
     bcrypt.genSalt(10, (err, salt) => {
         bcrypt.hash(this.Password, salt, (err, hash) => {
-            console.log("In pre function ",this.Password);
+         //   console.log("In pre function ",this.Password);
             this.Password = hash;
             this.saltSecret = salt;
             next();
@@ -78,9 +78,6 @@ Details.pre('save', function (next) {
 
 // Methods
 Details.methods.verifyPassword = function (Password) {
-    // console.log(Password);
-    // console.log(this.Password);
-    // console.log(bcrypt.compareSync(Password, this.Password))
     return bcrypt.compareSync(Password, this.Password);
 };
 Details.methods.generateJwt = function () {
